@@ -557,16 +557,29 @@ async def get_story_map(session_id: str, current_user: dict = Depends(get_curren
 @api_router.put("/story-maps/{session_id}", response_model=StoryMapResponse)
 async def update_story_map(session_id: str, data: StoryMapCreate, current_user: dict = Depends(get_current_user)):
     now = datetime.now(timezone.utc).isoformat()
+    map_id = str(uuid.uuid4())
     
-    await db.story_maps.update_one(
-        {"session_id": session_id},
-        {"$set": {
+    existing = await db.story_maps.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if existing:
+        await db.story_maps.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "title": data.title or "User Journey",
+                "items": [item.model_dump() for item in data.items],
+                "updated_at": now
+            }}
+        )
+    else:
+        map_doc = {
+            "id": map_id,
+            "session_id": session_id,
             "title": data.title or "User Journey",
             "items": [item.model_dump() for item in data.items],
+            "created_at": now,
             "updated_at": now
-        }},
-        upsert=True
-    )
+        }
+        await db.story_maps.insert_one(map_doc)
     
     story_map = await db.story_maps.find_one({"session_id": session_id}, {"_id": 0})
     return StoryMapResponse(**story_map)
@@ -599,15 +612,27 @@ async def get_ideas_board(session_id: str, current_user: dict = Depends(get_curr
 @api_router.put("/ideas-boards/{session_id}", response_model=IdeasBoardResponse)
 async def update_ideas_board(session_id: str, data: IdeasBoardCreate, current_user: dict = Depends(get_current_user)):
     now = datetime.now(timezone.utc).isoformat()
+    board_id = str(uuid.uuid4())
     
-    await db.ideas_boards.update_one(
-        {"session_id": session_id},
-        {"$set": {
+    existing = await db.ideas_boards.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if existing:
+        await db.ideas_boards.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "ideas": [idea.model_dump() for idea in data.ideas],
+                "updated_at": now
+            }}
+        )
+    else:
+        board_doc = {
+            "id": board_id,
+            "session_id": session_id,
             "ideas": [idea.model_dump() for idea in data.ideas],
+            "created_at": now,
             "updated_at": now
-        }},
-        upsert=True
-    )
+        }
+        await db.ideas_boards.insert_one(board_doc)
     
     board = await db.ideas_boards.find_one({"session_id": session_id}, {"_id": 0})
     return IdeasBoardResponse(**board)
@@ -640,15 +665,27 @@ async def get_feedback(session_id: str, current_user: dict = Depends(get_current
 @api_router.put("/feedback/{session_id}", response_model=FeedbackResponse)
 async def update_feedback(session_id: str, data: FeedbackCreate, current_user: dict = Depends(get_current_user)):
     now = datetime.now(timezone.utc).isoformat()
+    feedback_id = str(uuid.uuid4())
     
-    await db.feedback.update_one(
-        {"session_id": session_id},
-        {"$set": {
+    existing = await db.feedback.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if existing:
+        await db.feedback.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "items": [item.model_dump() for item in data.items],
+                "updated_at": now
+            }}
+        )
+    else:
+        feedback_doc = {
+            "id": feedback_id,
+            "session_id": session_id,
             "items": [item.model_dump() for item in data.items],
+            "created_at": now,
             "updated_at": now
-        }},
-        upsert=True
-    )
+        }
+        await db.feedback.insert_one(feedback_doc)
     
     feedback = await db.feedback.find_one({"session_id": session_id}, {"_id": 0})
     return FeedbackResponse(**feedback)
@@ -681,15 +718,27 @@ async def get_expectations(session_id: str, current_user: dict = Depends(get_cur
 @api_router.put("/expectations/{session_id}", response_model=ExpectationsResponse)
 async def update_expectations(session_id: str, data: ExpectationsCreate, current_user: dict = Depends(get_current_user)):
     now = datetime.now(timezone.utc).isoformat()
+    exp_id = str(uuid.uuid4())
     
-    await db.expectations.update_one(
-        {"session_id": session_id},
-        {"$set": {
+    existing = await db.expectations.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if existing:
+        await db.expectations.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "items": [item.model_dump() for item in data.items],
+                "updated_at": now
+            }}
+        )
+    else:
+        exp_doc = {
+            "id": exp_id,
+            "session_id": session_id,
             "items": [item.model_dump() for item in data.items],
+            "created_at": now,
             "updated_at": now
-        }},
-        upsert=True
-    )
+        }
+        await db.expectations.insert_one(exp_doc)
     
     expectations = await db.expectations.find_one({"session_id": session_id}, {"_id": 0})
     return ExpectationsResponse(**expectations)
