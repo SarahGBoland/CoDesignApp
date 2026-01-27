@@ -495,19 +495,35 @@ async def get_empathy_map(session_id: str, current_user: dict = Depends(get_curr
 @api_router.put("/empathy-maps/{session_id}", response_model=EmpathyMapResponse)
 async def update_empathy_map(session_id: str, data: EmpathyMapCreate, current_user: dict = Depends(get_current_user)):
     now = datetime.now(timezone.utc).isoformat()
+    map_id = str(uuid.uuid4())
     
-    await db.empathy_maps.update_one(
-        {"session_id": session_id},
-        {"$set": {
+    existing = await db.empathy_maps.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if existing:
+        await db.empathy_maps.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "persona_name": data.persona_name or "User",
+                "says": data.says,
+                "thinks": data.thinks,
+                "does": data.does,
+                "feels": data.feels,
+                "updated_at": now
+            }}
+        )
+    else:
+        map_doc = {
+            "id": map_id,
+            "session_id": session_id,
             "persona_name": data.persona_name or "User",
             "says": data.says,
             "thinks": data.thinks,
             "does": data.does,
             "feels": data.feels,
+            "created_at": now,
             "updated_at": now
-        }},
-        upsert=True
-    )
+        }
+        await db.empathy_maps.insert_one(map_doc)
     
     emp_map = await db.empathy_maps.find_one({"session_id": session_id}, {"_id": 0})
     return EmpathyMapResponse(**emp_map)
