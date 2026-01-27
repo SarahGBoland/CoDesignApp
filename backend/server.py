@@ -435,16 +435,30 @@ async def get_problem_tree(session_id: str, current_user: dict = Depends(get_cur
 @api_router.put("/problem-trees/{session_id}", response_model=ProblemTreeResponse)
 async def update_problem_tree(session_id: str, data: ProblemTreeCreate, current_user: dict = Depends(get_current_user)):
     now = datetime.now(timezone.utc).isoformat()
+    tree_id = str(uuid.uuid4())
     
-    result = await db.problem_trees.update_one(
-        {"session_id": session_id},
-        {"$set": {
+    # Check if exists
+    existing = await db.problem_trees.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if existing:
+        await db.problem_trees.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "core_problem": data.core_problem,
+                "items": [item.model_dump() for item in data.items],
+                "updated_at": now
+            }}
+        )
+    else:
+        tree_doc = {
+            "id": tree_id,
+            "session_id": session_id,
             "core_problem": data.core_problem,
             "items": [item.model_dump() for item in data.items],
+            "created_at": now,
             "updated_at": now
-        }},
-        upsert=True
-    )
+        }
+        await db.problem_trees.insert_one(tree_doc)
     
     tree = await db.problem_trees.find_one({"session_id": session_id}, {"_id": 0})
     return ProblemTreeResponse(**tree)
