@@ -181,7 +181,8 @@
 }
 
 .tts-btn.speaking {
-    @apply bg-accent text-accent-foreground animate-pulse-gentle;
+    @apply bg-accent text-accent-foreground;
+    animation: pulse-gentle 2s ease-in-out infinite;
 }
 
 /* Speech-to-text indicator */
